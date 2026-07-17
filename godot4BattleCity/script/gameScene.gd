@@ -32,15 +32,20 @@ func _ready():
 	map.loadEnemyCount()  # 加载敌人数量
 	map.setLevelName(Game.gameLevel+1)  # 设置关卡名称
 	
+	# 联机模式：仅服务端执行游戏流程
+	if Game.mode == Game.gameMode.ONLINE:
+		if not multiplayer.is_server():
+			return  # 客户端不执行初始化逻辑
+	
 	# 添加玩家1
 	if Game.p1Data['lives']>=0:  # 坦克数量为0表示最后一辆，小于0就是没有了
-		map.addPlayer(1,Game.p1Data)  # 添加玩家1坦克
+		map.rpc("addPlayer", 1, Game.p1Data)  # 使用RPC添加玩家1
 		map.setP1LiveNum(Game.p1Data.lives)  # 设置玩家1生命数
 	
-	# 添加玩家2（双人模式）
-	if Game.mode==Game.gameMode.DOUBLE:
+	# 添加玩家2（双人模式或联机模式）
+	if Game.mode==Game.gameMode.DOUBLE or Game.mode==Game.gameMode.ONLINE:
 		if Game.p2Data['lives']>=0:
-			map.addPlayer(2,Game.p2Data)  # 添加玩家2坦克
+			map.rpc("addPlayer", 2, Game.p2Data)  # 使用RPC添加玩家2
 			minEnemyCount=8  # 双人模式增加敌人数量
 		map.setP2LiveNum(Game.p2Data.lives)  # 设置玩家2生命数
 	
@@ -56,21 +61,38 @@ func _ready():
 	produceTimer.start()  # 启动敌人生成计时器
 	state=Game.gameState.START  # 设置游戏状态为开始
 
+
 # 基地被摧毁处理
 func baseDestroyed():
 	print('baseDestroyed')  # 调试信息
+	
+	# 联机模式：仅服务端处理
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
+	
 	if !gameOver:  # 如果游戏未结束
 		_gameOver()  # 调用游戏结束函数
 	
+
 # 添加道具处理
 func addBonus():
 	print('addBonus')  # 调试信息
+	
+	# 联机模式：仅服务端处理
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
+	
 	SoundsUtil.playBouns()  # 播放道具出现音效
-	map.addBonus()  # 地图添加道具
+	map.rpc("addBonus")  # 使用RPC添加道具
+
 
 # 敌人被摧毁处理
 func destroyEnemy(type,playerId,pos):
 	print('destroyEnemy')  # 调试信息
+	
+	# 联机模式：仅服务端处理
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
 	
 	# 根据玩家ID和敌人类型增加分数
 	if playerId==Game.playerId.p1:
@@ -108,37 +130,39 @@ func destroyEnemy(type,playerId,pos):
 			Game.p2Data['score']+=400  # 增加分数
 			addScore(400,pos)  # 显示分数
 			
+
 # 玩家被击中处理
 func hitPlayer(playerId):
 	print('hitPlayer',playerId)  # 调试信息	
-	# 如果玩家生命都为0，游戏结束
-	# if gameOver:
-	# 	return		
+	
+	# 联机模式：仅服务端处理
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
 	
 	if playerId==Game.playerId.p1:
 		Game.p1Data.lives-=1  # 减少玩家1生命
 		if Game.p1Data.lives>=0:
-			# 只有生命数大于0的时候才可以添加新坦克
-			map.addPlayer(1,{},gameOver)  # 添加新的玩家1坦克
+			map.rpc("addPlayer", 1, {}, gameOver)  # 使用RPC添加新的玩家1坦克
 			map.setP1LiveNum(Game.p1Data.lives)  # 更新玩家1生命显示
 	elif playerId==Game.playerId.p2:
 		Game.p2Data.lives-=1  # 减少玩家2生命
 		if Game.p2Data.lives>=0:	
-			map.addPlayer(2,{},gameOver)  # 添加新的玩家2坦克
+			map.rpc("addPlayer", 2, {}, gameOver)  # 使用RPC添加新的玩家2坦克
 			map.setP2LiveNum(Game.p2Data.lives)  # 更新玩家2生命显示		
-		
+	
 	# 检查游戏是否结束
 	if Game.mode==Game.gameMode.SINGLE:
 		if Game.p1Data.lives<0:
 			_gameOver()  # 单人模式下玩家1生命耗尽，游戏结束
-	elif Game.mode==Game.gameMode.DOUBLE:
+	elif Game.mode==Game.gameMode.DOUBLE or Game.mode==Game.gameMode.ONLINE:
 		if Game.p1Data.lives<0&&Game.p2Data.lives<0:
-			_gameOver()  # 双人模式下所有玩家生命耗尽，游戏结束
+			_gameOver()  # 双人/联机模式下所有玩家生命耗尽，游戏结束
 		if playerId==Game.playerId.p1&&Game.p1Data.lives<0:
 			addPlayerGameOverLabel(playerId)  # 显示玩家1游戏结束标签
 		if playerId==Game.playerId.p2&&Game.p2Data.lives<0:
 			addPlayerGameOverLabel(playerId)  # 显示玩家2游戏结束标签	
 			
+
 # 添加分数显示
 func addScore(s,pos):
 	var temp=scoreLabel.instantiate()  # Godot 4 使用 .instantiate() 替代 .instance()
@@ -158,10 +182,15 @@ func savePlayerData():
 	Game.p2Data['level']=temp['p2']['level']  # 坦克等级
 	Game.p2Data['armour']=temp['p2']['armour']  # 坦克装甲
 	Game.p2Data['hasShip']=temp['p2']['hasShip']  # 是否有船			
-						
+					
+
 # 获取道具处理
 func getBonus(type,objType,playerId):
 	print(type,objType,playerId)  # 调试信息
+	
+	# 联机模式：仅服务端处理
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
 	
 	# 增加分数
 	if playerId==Game.playerId.p1:
@@ -177,7 +206,7 @@ func getBonus(type,objType,playerId):
 	
 	# 根据道具类型执行不同效果
 	if type==Game.bonusType.GRENADE:  # 手榴弹
-		var list=map.clearEnemyTank()  # 清除所有敌人坦克
+		var list=map.rpc("clearEnemyTank")  # 使用RPC清除所有敌人坦克
 		# 增加敌人击杀数
 		if playerId==Game.playerId.p1:
 			Game.p1Score['typeA']+=list['typeA']
@@ -223,6 +252,7 @@ func getBonus(type,objType,playerId):
 	else:
 		SoundsUtil.playGetBouns()  # 播放获得道具音效				
 
+
 # 游戏结束处理
 func _gameOver():
 	gameOver=true  # 设置游戏结束标志
@@ -230,8 +260,8 @@ func _gameOver():
 	player.play("gameover")  # 播放游戏结束动画
 
 	await player.animation_finished  # Godot 4 使用 await 替代 yield
-	# yield(player,"animation_finished")  # Godot 3 的写法
 	nextLevel.start()  # 启动进入下一关计时器
+
 
 # 添加玩家游戏结束标签		
 func addPlayerGameOverLabel(id):
@@ -243,10 +273,14 @@ func addPlayerGameOverLabel(id):
 	elif id==Game.playerId.p2:
 		temp.rect_position=map.player2[0]*map.cellSize  # 玩家2出生点	
 	
-	
-	
+
+
 # 物理过程处理
 func _physics_process(delta):
+	# 联机模式：客户端不执行物理逻辑
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
+	
 	if state==Game.gameState.START:  # 如果游戏已开始
 		if hasShovel:  # 如果有铲子效果
 			if shovelTimer.get_time_left()<=5:  # 铲子效果即将结束
@@ -259,18 +293,20 @@ func _physics_process(delta):
 						brickType=Game.brickType.STONE
 					else:
 						brickType=Game.brickType.WALL	
-						
-							
 
 
 # 敌人生成计时器超时处理
 func _on_produce_timer_timeout():
+	# 联机模式：仅服务端生成敌人
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
+	
 	if map.enemyCount>0:  # 如果还有敌人需要生成
 		if map.getEnemyCount()<minEnemyCount:  # 如果当前敌人数量小于最小数量
 			if hasClock:  # 如果有时钟效果
-				map.addEnemy(true)  # 生成冻结状态的敌人
+				map.rpc("addEnemy", true)  # 使用RPC生成冻结状态的敌人
 			else:	
-				map.addEnemy()  # 生成普通敌人
+				map.rpc("addEnemy")  # 使用RPC生成普通敌人
 	else:  # 判断是不是所有敌人都消灭了
 		if map.getEnemyCount()==0:  # 如果所有敌人都被消灭
 			produceTimer.stop()  # 停止敌人生成计时器
@@ -281,6 +317,10 @@ func _on_produce_timer_timeout():
 
 # 进入下一关计时器超时处理
 func _on_next_level_timeout():
+	# 联机模式：仅服务端处理场景切换
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
+	
 	var temp=load("res://scene/settlement.tscn")  # 加载结算场景
 	var scene=temp.instantiate()  # Godot 4 使用 .instantiate()
 	if gameOver:
@@ -292,6 +332,10 @@ func _on_next_level_timeout():
 
 # 铲子计时器超时处理
 func _on_shovel_timer_timeout():
+	# 联机模式：仅服务端处理
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
+	
 	hasShovel=false  # 取消铲子效果
 	map.changeBasePlaceBrickType(Game.brickType.WALL)  # 恢复基地周围为普通砖块
 	changeBrickTime=0  # 重置砖块变化计时器
@@ -300,5 +344,9 @@ func _on_shovel_timer_timeout():
 
 # 时钟计时器超时处理
 func _on_clock_timer_timeout():
+	# 联机模式：仅服务端处理
+	if Game.mode == Game.gameMode.ONLINE and not multiplayer.is_server():
+		return
+	
 	map.setEnemyFreeze(false)  # 取消敌人冻结
 	hasClock=false  # 取消时钟效果

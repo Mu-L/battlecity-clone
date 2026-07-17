@@ -1,47 +1,57 @@
 extends Node2D
 
+# 是否允许选择关卡
 export var selectLevel=false
+# 下一个场景
 export var nextScene:PackedScene
 
-onready var player=$player
-onready var level=$name
+# 节点引用（Godot 3 使用 onready）
+onready var player=$player  # 玩家动画节点
+onready var level=$name  # 关卡标签节点
 
+# 初始化函数
 func _ready():
-	set_process_input(false)
-#	if !selectLevel:
-#		set_process_input(false)
-	player.play("in")
-	yield(player,"animation_finished")
-	level.text="stage %d"%(Game.gameLevel+1)
+	set_process_input(false)  # 禁用输入处理
+	player.play("in")  # 播放进入动画
+	yield(player,"animation_finished")  # 等待动画播放完毕（Godot 3 使用 yield）
+	level.text="stage %d"%(Game.gameLevel+1)  # 显示关卡数
+	
 	if !selectLevel:
+		# 自动模式：等待120帧（约2秒）后进入下一个场景
 		for i in range(120):
 			yield(get_tree(),"physics_frame")
-		var temp=nextScene.instance()
-		get_tree().root.add_child(temp)
-		player.play("out")
-		SoundsUtil.playMusic()
-		yield(player,"animation_finished")
-		get_tree().current_scene=temp
-		queue_free()		
+		var temp=nextScene.instance()  # Godot 3 使用 .instance()
+		get_tree().root.add_child(temp)  # 添加到根节点
+		player.play("out")  # 播放退出动画
+		SoundsUtil.playMusic()  # 播放背景音乐
+		yield(player,"animation_finished")  # 等待动画播放完毕
+		get_tree().current_scene=temp  # 设置为当前场景
+		queue_free()  # 释放当前场景		
 	else:
-		set_process_input(true)	
-		
+		set_process_input(true)  # 启用输入处理（允许选择关卡）	
+
+# 输入处理
 func _input(event):
+	# 确认选择关卡
 	if Input.is_action_pressed("select"):
-		var temp=nextScene.instance()
-		get_tree().root.add_child(temp)
-		player.play("out")
-		SoundsUtil.playMusic()
-		set_process_input(false)
-		yield(player,"animation_finished")
-		set_physics_process(true)
-		get_tree().current_scene=temp
-		queue_free()
+		var temp=nextScene.instance()  # Godot 3 使用 .instance()
+		get_tree().root.add_child(temp)  # 添加到根节点
+		player.play("out")  # 播放退出动画
+		SoundsUtil.playMusic()  # 播放背景音乐
+		set_process_input(false)  # 禁用输入处理
+		yield(player,"animation_finished")  # 等待动画播放完毕（Godot 3 使用 yield）
+		set_physics_process(true)  # 启用物理处理
+		get_tree().current_scene=temp  # 设置为当前场景
+		queue_free()  # 释放当前场景
+	
+	# 向上选择关卡
 	if Input.is_action_pressed("p1_up"):
 		if Game.gameLevel<Game.mapList.size()-1:
-			Game.gameLevel+=1
-			level.text="stage %d"%(Game.gameLevel+1)
+			Game.gameLevel+=1  # 增加关卡数
+			level.text="stage %d"%(Game.gameLevel+1)  # 更新关卡显示
+	
+	# 向下选择关卡
 	if Input.is_action_pressed("p1_down"):
 		if Game.gameLevel>0:
-			Game.gameLevel-=1
-			level.text="stage %d"%(Game.gameLevel+1)
+			Game.gameLevel-=1  # 减少关卡数
+			level.text="stage %d"%(Game.gameLevel+1)  # 更新关卡显示

@@ -9,6 +9,10 @@ var level=Game.level.MIN  # 玩家坦克级别
 var keymap={"up":0,"down":0,"left":0,"right":0,'shoot':0}  # 按键映射
 var greenColor=['#0d472f','#d9ffe7','#5ea77b']  # 外表颜色
 
+# 网络同步相关变量
+var isLocalPlayer:bool = true  # 是否为本地玩家
+var inputState:Dictionary = {"up":false, "down":false, "left":false, "right":false, "shoot":false}  # 输入状态
+
 # 音效节点（Godot 4 使用 @onready）
 @onready var fireSound=$fire  # 开火音效
 @onready var hitSound=$hit  # 被击中音效
@@ -38,9 +42,24 @@ func _ready():
 		keymap["shoot"]="p2_shoot"	
 		ani.material.set_shader_parameter('ischange',true)  # Godot 4 使用 .set_shader_parameter() 替代 .set_shader_param()
 
+	# 设置网络权限（服务端权威模式）
+	if Game.mode == Game.gameMode.ONLINE:
+		isLocalPlayer = multiplayer.is_multiplayer_authority()
+		if isLocalPlayer:
+			set_multiplayer_authority(multiplayer.get_unique_id())
+
+
 # 物理过程处理
 func _physics_process(delta):
 	if state==Game.tankstate.START:  # 如果坦克状态为开始
+		# 联机模式：本地玩家采集输入并发送到服务端
+		if Game.mode == Game.gameMode.ONLINE:
+			if isLocalPlayer:
+				collectInput()
+				rpc("processInput", inputState)
+			return  # 联机模式下，移动逻辑由服务端的 processInput RPC 处理
+		
+		# 单机模式：直接处理输入
 		lastDir=dir  # 记录上一个方向
 		isStop=false  # 是否停止移动
 	
@@ -139,7 +158,7 @@ func _physics_process(delta):
 		# 移动坦克
 		if !isStop:
 			position+=vec*delta			
-			
+		
 		# 边界检查
 		if position.x<=tankSize/2:
 			position.x=tankSize/2  # 左边界
@@ -152,6 +171,125 @@ func _physics_process(delta):
 			position.y=mapSize.y-tankSize/2  # 下边界
 
 
+# 采集本地输入（联机模式）
+func collectInput():
+	inputState["up"] = Input.is_action_pressed(keymap["up"])
+	inputState["down"] = Input.is_action_pressed(keymap["down"])
+	inputState["left"] = Input.is_action_pressed(keymap["left"])
+	inputState["right"] = Input.is_action_pressed(keymap["right"])
+	inputState["shoot"] = Input.is_action_pressed(keymap["shoot"])
+
+
+# RPC 方法：处理输入（服务端执行）
+@rpc("any_peer", "call_remote")
+func processInput(input:Dictionary):
+	if state != Game.tankstate.START:
+		return
+	
+	lastDir = dir
+	isStop = false
+	vec = Vector2.ZERO
+	
+	# 根据输入状态设置移动方向
+	if input["down"]:
+		if vec == Vector2.ZERO && isOnIce:
+			slideSound.play()
+		vec = Vector2(0, speed)
+		dir = Game.dir.DOWN
+	elif input["up"]:
+		if vec == Vector2.ZERO && isOnIce:
+			slideSound.play()
+		vec = Vector2(0, -speed)
+		dir = Game.dir.UP
+	elif input["left"]:
+		if vec == Vector2.ZERO && isOnIce:
+			slideSound.play()
+		vec = Vector2(-speed, 0)
+		dir = Game.dir.LEFT
+	elif input["right"]:
+		if vec == Vector2.ZERO && isOnIce:
+			slideSound.play()
+		vec = Vector2(speed, 0)
+		dir = Game.dir.RIGHT
+	
+	if lastDir != dir:
+		turnDirection()
+	
+	# 处理开火
+	if input["shoot"]:
+		fire()
+	
+	# 处理动画
+	animation(dir, vec)
+	
+	# 获取碰撞区域
+	var areas = []
+	if dir == Game.dir.LEFT:
+		areas = leftArea.get_overlapping_areas()
+	elif dir == Game.dir.RIGHT:
+		areas = rightArea.get_overlapping_areas()
+	elif dir == Game.dir.UP:
+		areas = topArea.get_overlapping_areas()
+	elif dir == Game.dir.DOWN:
+		areas = bottomArea.get_overlapping_areas()
+	
+	isOnIce = false
+	# 处理碰撞
+	for i in areas:
+		if i == leftArea || i == rightArea || i == topArea || i == bottomArea || i == self:
+			continue
+		if i.get('objType') in [Game.objType.BRICK, Game.objType.BASE]:
+			var type = i.get('type')
+			if type == Game.brickType.BUSH || type == Game.brickType.ICE:
+				if type == Game.brickType.ICE:
+					isOnIce = true
+				continue
+			if type == Game.brickType.WATER && hasShip:
+				continue
+			isStop = true
+		if i.get('objType') in [Game.objType.ENEMY, Game.objType.PLAYER]:
+			if global_position.distance_to(i.global_position) < 10:
+				continue
+			isStop = true
+	
+	# 处理音效
+	if vec != Vector2.ZERO:
+		slideTime = 20
+		if !walkSound.playing:
+			walkSound.play()
+		if idleSound.playing:
+			idleSound.stop()
+	else:
+		if walkSound.playing:
+			walkSound.stop()
+		if !idleSound.playing:
+			idleSound.play()
+	
+	# 处理冰上滑行
+	if isOnIce && slideTime > 0 && vec == Vector2.ZERO:
+		if dir == Game.dir.LEFT:
+			vec = Vector2(-speed, 0)
+		elif dir == Game.dir.RIGHT:
+			vec = Vector2(speed, 0)
+		elif dir == Game.dir.UP:
+			vec = Vector2(0, -speed)
+		elif dir == Game.dir.DOWN:
+			vec = Vector2(0, speed)
+		slideTime -= 1
+	
+	# 移动坦克
+	if !isStop:
+		position += vec * get_process_delta_time()
+	
+	# 边界检查
+	if position.x <= tankSize/2:
+		position.x = tankSize/2
+	if position.x >= mapSize.x - tankSize/2:
+		position.x = mapSize.x - tankSize/2
+	if position.y <= tankSize/2:
+		position.y = tankSize/2
+	if position.y >= mapSize.y - tankSize/2:
+		position.y = mapSize.y - tankSize/2
 
 
 # 开始初始化
@@ -290,9 +428,8 @@ func animation(dir,vec):
 		elif level==Game.level.LARGE:
 			ani.play('large')  # 大型坦克 idle动画	
 		elif level==Game.level.SUPER:
-			ani.play('super')  # 超级坦克 idle动画	
-			
-			
+			ani.play('super')  # 超级坦克 idle动画			
+
 
 # 初始化计时器超时处理
 func _on_init_timer_timeout():
@@ -310,6 +447,10 @@ func _on_init_timer_timeout():
 func _on_area_entered(area):
 	if isDestroy||area==null:
 		return  # 如果坦克已被摧毁或区域为空，返回
+	
+	# 联机模式下，碰撞检测只在服务端执行
+	if Game.mode == Game.gameMode.ONLINE && !multiplayer.is_server():
+		return
 	
 	# 处理子弹碰撞
 	if area!=null&&area.get('objType')==Game.objType.BULLET:

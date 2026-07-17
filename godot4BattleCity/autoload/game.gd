@@ -51,7 +51,7 @@ enum gameState{
 }
 
 enum gameMode{
-	SINGLE,DOUBLE
+	SINGLE,DOUBLE,ONLINE
 }
 
 enum objState{
@@ -65,6 +65,10 @@ var p1Score={'typeA':0,'typeB':0,'typeC':0,'typeD':0}
 var p2Score={'typeA':0,'typeB':0,'typeC':0,'typeD':0}
 var gameLevel=0 #游戏关卡
 var mode=gameMode.SINGLE
+
+# 联机模式相关数据
+var onlinePeerId:int = 1  # 当前玩家的网络 peer ID
+var onlinePlayerId:int = playerId.p1  # 当前玩家的本地玩家 ID
 
 #信号
 signal baseDestroyed

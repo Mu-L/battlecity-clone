@@ -1,11 +1,11 @@
 [gd_scene load_steps=11 format=3 uid="uid://ddv6gbbnbw6vg"]
 
-[ext_resource type="Script" uid="uid://df0jvmo4idrm" path="res://script/welcome.gd" id="1_04a3m"]
+[ext_resource type="Script" uid="uid://cumngwld44ghl" path="res://script/welcome.gd" id="1_04a3m"]
 [ext_resource type="Theme" uid="uid://bwtt6taomj0ql" path="res://theme/theme.tres" id="2_07xfm"]
-[ext_resource type="Texture2D" uid="uid://c1w7k1u7i0q8y" path="res://sprite/battle_city.png" id="2_r5w1e"]
-[ext_resource type="Texture2D" uid="uid://didr4k777db1g" path="res://sprite/tank_main1.png" id="3_8enbu"]
-[ext_resource type="Texture2D" uid="uid://dwukf2fonspxf" path="res://sprite/tank_main2.png" id="4_ap5kp"]
-[ext_resource type="FontFile" uid="uid://dne4kfa5qmsu2" path="res://font/prstartk.ttf" id="6_si833"]
+[ext_resource type="Texture2D" uid="uid://b6u2r3v1lnoyj" path="res://sprite/battle_city.png" id="2_r5w1e"]
+[ext_resource type="Texture2D" uid="uid://dhmpxs1upfbvl" path="res://sprite/tank_main1.png" id="3_8enbu"]
+[ext_resource type="Texture2D" uid="uid://c8one8cijcpaf" path="res://sprite/tank_main2.png" id="4_ap5kp"]
+[ext_resource type="FontFile" uid="uid://dhbxwggug8gc7" path="res://font/prstartk.ttf" id="6_si833"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_0jgil"]
 animations = [{
@@ -97,9 +97,8 @@ theme = ExtResource("2_07xfm")
 [node name="HBoxContainer" type="HBoxContainer" parent="main/Control"]
 layout_mode = 0
 offset_left = 184.0
-offset_top = 20.0
 offset_right = 364.0
-offset_bottom = 60.0
+offset_bottom = 40.0
 
 [node name="Label" type="Label" parent="main/Control/HBoxContainer"]
 layout_mode = 2
@@ -112,9 +111,9 @@ text = "000000"
 [node name="VBoxContainer" type="VBoxContainer" parent="main/Control"]
 layout_mode = 0
 offset_left = 207.0
-offset_top = 233.0
-offset_right = 247.0
-offset_bottom = 309.0
+offset_top = 181.0
+offset_right = 399.0
+offset_bottom = 365.0
 
 [node name="MarginContainer" type="MarginContainer" parent="main/Control/VBoxContainer"]
 layout_mode = 2
@@ -132,6 +131,24 @@ theme_override_constants/margin_bottom = 8
 [node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer3"]
 layout_mode = 2
 text = "2 player2"
+uppercase = true
+
+[node name="MarginContainer7" type="MarginContainer" parent="main/Control/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_bottom = 8
+
+[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer7"]
+layout_mode = 2
+text = "create room"
+uppercase = true
+
+[node name="MarginContainer8" type="MarginContainer" parent="main/Control/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_bottom = 8
+
+[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer8"]
+layout_mode = 2
+text = "join room"
 uppercase = true
 
 [node name="MarginContainer4" type="MarginContainer" parent="main/Control/VBoxContainer"]
@@ -163,9 +180,9 @@ uppercase = true
 [node name="Label" type="Label" parent="main/Control"]
 layout_mode = 0
 offset_left = 207.0
-offset_top = 371.0
+offset_top = 381.0
 offset_right = 303.0
-offset_bottom = 387.0
+offset_bottom = 397.0
 theme_override_colors/font_color = Color(0.988235, 0.211765, 0.109804, 1)
 text = "namcot"
 uppercase = true
@@ -182,11 +199,11 @@ horizontal_alignment = 1
 uppercase = true
 
 [node name="Sprite2D" type="Sprite2D" parent="main"]
-position = Vector2(256, 125)
+position = Vector2(256, 101)
 texture = ExtResource("2_r5w1e")
 
 [node name="tankAni" type="AnimatedSprite2D" parent="main"]
-position = Vector2(171, 240)
+position = Vector2(171, 188)
 rotation = 1.5708
 sprite_frames = SubResource("SpriteFrames_0jgil")
 autoplay = "default"
@@ -216,4 +233,44 @@ text = "maps is empty"
 layout_mode = 2
 text = "OK"
 
+[node name="OnlineDialog" type="PopupPanel" parent="."]
+size = Vector2i(204, 101)
+visible = true
+
+[node name="VBoxContainer" type="VBoxContainer" parent="OnlineDialog"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 200.0
+offset_bottom = 97.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="OnlineDialog/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="OnlineDialog/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "ip"
+
+[node name="ipInput" type="LineEdit" parent="OnlineDialog/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "127.0.0.1"
+
+[node name="Label2" type="Label" parent="OnlineDialog/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "port"
+
+[node name="portInput" type="LineEdit" parent="OnlineDialog/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "25001"
+
+[node name="statusLabel" type="Label" parent="OnlineDialog/VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="OnlineDialog/VBoxContainer"]
+layout_mode = 2
+
+[node name="Button" type="Button" parent="OnlineDialog/VBoxContainer/VBoxContainer2"]
+layout_mode = 2
+text = "connect"
+
 [connection signal="pressed" from="PopupPanel/VBoxContainer/Button" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="OnlineDialog/VBoxContainer/VBoxContainer2/Button" to="." method="_on_online_connect_pressed"]

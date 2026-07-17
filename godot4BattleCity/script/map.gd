@@ -76,9 +76,8 @@ func loadMap(filePath:String):
 		createBase()
 	else:
 		printerr('file not exists')  # 文件不存在错误	
-	
-	
-	
+
+
 # 加载敌人数量显示
 func loadEnemyCount():
 	# 清除旧的敌人图标
@@ -97,6 +96,7 @@ func removeEnemyLogo():
 	if e.size()>0:
 		enemyList.remove_child(e.pop_back())  # 移除最后一个图标
 	
+
 # 删除玩家复活点方块	
 func delPlayerPosBrick():
 	# 删除玩家1出生点砖块
@@ -111,6 +111,7 @@ func delPlayerPosBrick():
 		if temp:
 			temp.queue_free()  # 释放砖块
 
+
 # 改变基地周围砖块类型
 func changeBasePlaceBrickType(type):
 	for i in baseBrickPos:  # 遍历基地周围位置
@@ -124,11 +125,13 @@ func changeBasePlaceBrickType(type):
 			temp.position=i*cellSize+Vector2(cellSize/2,cellSize/2)  # 设置位置
 			brickNode.add_child(temp)  # 添加到砖块节点
 
+
 # 设置敌人是否冻结
 func setEnemyFreeze(flag=true):
 	for i in tanksNode.get_children():  # 遍历所有坦克
 		if i.get('objType')==Game.objType.ENEMY:  # 如果是敌人
 			i.setFreeze(flag)  # 设置冻结状态
+
 
 # 设置玩家是否冻结
 func setPlayerFreeze(flag=true):
@@ -136,11 +139,13 @@ func setPlayerFreeze(flag=true):
 		if i.get('objType')==Game.objType.PLAYER:  # 如果是玩家
 			i.setFreeze(flag)  # 设置冻结状态
 
+
 # 创建基地	
 func createBase():
 	var temp=base.instantiate()  # Godot 4 使用 .instantiate()
 	temp.position=Vector2(basePos.x*cellSize+cellSize,basePos.y*cellSize+cellSize)  # 设置基地位置
 	otherNode.add_child(temp)  # 添加到其他节点		
+
 
 # 获取地图中的砖块 x [0-25] y[0-25]
 func getBrick(x:int,y:int):
@@ -153,7 +158,9 @@ func getBrick(x:int,y:int):
 			break
 	return temp
 
-# 添加玩家
+
+# 添加玩家（联机模式下由服务端调用并同步到所有客户端）
+@rpc("any_peer", "call_remote")
 func addPlayer(playNo:int,data:Dictionary={},isFreeze=false):
 	var temp=player.instantiate()  # Godot 4 使用 .instantiate()
 	
@@ -180,24 +187,35 @@ func addPlayer(playNo:int,data:Dictionary={},isFreeze=false):
 				temp.bulletPower=Game.bulletPower.SUPER  # 超级坦克子弹威力
 			else:
 				temp.bulletPower=Game.bulletPower.FAST  # 大型坦克子弹速度
-			
+		
 	tanksNode.call_deferred('add_child',temp)  # 延迟添加到坦克节点
+	
+	# 联机模式下设置网络权限
+	if Game.mode == Game.gameMode.ONLINE:
+		if playNo == 1:
+			temp.set_multiplayer_authority(1)  # 玩家1由服务端控制（主机）
+		else:
+			temp.set_multiplayer_authority(2)  # 玩家2由客户端2控制
+	
 	if isFreeze:
-		temp.call_deferred('setFreeze',true)  # 延迟设置冻结状态
-						
+		temp.call_deferred('setFreeze',true)  # 延迟设置冻结状态					
+
+
 # 删除敌人出生点方块
 func delEnemyPosBrick():
 	for i in enemyPos:  # 遍历敌人出生位置
 		var brick=getBrick(i.x,i.y)  # 获取砖块
 		if brick:
 			brick.queue_free()  # 释放砖块
-	
+
+
 # 删除基地周边的方块	
 func delBasePlaceBrick():
 	for i in baseBrickPos:  # 遍历基地周围位置
 		var temp=getBrick(i.x,i.y)  # 获取砖块
 		if temp:
 			temp.queue_free()  # 释放砖块
+
 
 # 添加基地周边石头
 func addBasePlaceStone():
@@ -207,19 +225,25 @@ func addBasePlaceStone():
 		temp.position=i*cellSize+Vector2(cellSize/2,cellSize/2)  # 设置位置
 		brickNode.call_deferred('add_child',temp)  # 延迟添加到砖块节点
 
-# 添加子弹
+
+# 添加子弹（联机模式下由服务端调用并同步到所有客户端）
+@rpc("any_peer", "call_remote")
 func addBullet(obj):
 	bulletsNode.add_child(obj)  # 添加到子弹节点
 
-# 添加其他对象
+
+# 添加其他对象（联机模式下由服务端调用并同步到所有客户端）
+@rpc("any_peer", "call_remote")
 func addOther(obj):
 	otherNode.add_child(obj)  # 添加到其他节点
+
 
 # 设置玩家1生命数
 func setP1LiveNum(num):
 	p1Num.visible=true  # 显示玩家1生命UI
 	p1LiveNum=num  # 设置生命数
 	p1Count.text=str(num)  # 更新生命数显示
+
 
 	
 # 设置玩家2生命数
@@ -231,8 +255,9 @@ func setP2LiveNum(num):
 
 # 设置关卡名称
 func setLevelName(name):
-	levelName.text='%d'%name  # 更新关卡名称显示
-				
+	levelName.text='%d'%name  # 更新关卡名称显示				
+
+
 # 获取敌人总数
 func getEnemyCount():
 	var num=0
@@ -240,8 +265,10 @@ func getEnemyCount():
 		if i.get('objType')==Game.objType.ENEMY:  # 如果是敌人
 			num+=1  # 增加计数
 	return num	
-	
-# 添加敌人
+
+
+# 添加敌人（联机模式下由服务端调用并同步到所有客户端）
+@rpc("any_peer", "call_remote")
 func addEnemy(isFreeze=false):
 	var temp=enemy.instantiate()  # Godot 4 使用 .instantiate()
 	
@@ -260,8 +287,10 @@ func addEnemy(isFreeze=false):
 	
 	removeEnemyLogo()  # 移除一个敌人图标
 	enemyCount-=1  # 减少敌人总数
-	
-# 添加道具（道具不在基地附近和玩家当前附近）
+
+
+# 添加道具（联机模式下由服务端调用并同步到所有客户端）
+@rpc("any_peer", "call_remote")
 func addBonus():
 	# 清除旧道具
 	for i in otherNode.get_children():
@@ -287,6 +316,7 @@ func addBonus():
 	temp.setRandomType()  # 随机设置道具类型
 	otherNode.call_deferred('add_child',temp)  # 延迟添加到其他节点
 	
+
 # 获取玩家数据
 func getPlayerStatus():
 	var temp={'p1':{
@@ -311,8 +341,9 @@ func getPlayerStatus():
 				temp['p2']['level']=i.level
 				temp['p2']['armour']=i.armour
 				temp['p2']['hasShip']=i.hasShip
-	return temp
-	
+	return temp	
+
+
 # 获取玩家
 func getPlayer(id):
 	var tank
@@ -320,9 +351,11 @@ func getPlayer(id):
 		if i.get('objType')==Game.objType.PLAYER && i.get('playerId')==id:
 			tank=i  # 找到玩家
 			break
-	return tank
-	
-# 清空敌人坦克
+	return tank	
+
+
+# 清空敌人坦克（联机模式下由服务端调用并同步到所有客户端）
+@rpc("any_peer", "call_remote")
 func clearEnemyTank()->Dictionary:
 	var list={'typeA':0,'typeB':0,'typeC':0,'typeD':0}  # 统计各类型敌人数量
 	
