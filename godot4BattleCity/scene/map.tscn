@@ -1,44 +1,44 @@
-[gd_scene load_steps=5 format=3 uid="uid://pn880e5ss888"]
+[gd_scene format=3 uid="uid://pn880e5ss888"]
 
 [ext_resource type="Script" uid="uid://d3c2hnjxyk1w" path="res://script/map.gd" id="1_y6klf"]
 [ext_resource type="Theme" uid="uid://bwtt6taomj0ql" path="res://theme/theme.tres" id="2_t5lf4"]
 [ext_resource type="Texture2D" uid="uid://cofoe41bqdt66" path="res://sprite/lives.png" id="3_us57j"]
 [ext_resource type="Texture2D" uid="uid://djyb1g4gwcdtm" path="res://sprite/flag.png" id="4_i01vf"]
 
-[node name="map" type="Node2D"]
+[node name="map" type="Node2D" unique_id=1487199914]
 script = ExtResource("1_y6klf")
 
-[node name="bg" type="ColorRect" parent="."]
+[node name="bg" type="ColorRect" parent="." unique_id=1871066132]
 offset_right = 512.0
 offset_bottom = 448.0
 color = Color(0.392157, 0.392157, 0.392157, 1)
 
-[node name="mapBg" type="ColorRect" parent="."]
+[node name="mapBg" type="ColorRect" parent="." unique_id=1363446428]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 432.0
 offset_bottom = 432.0
 color = Color(0, 0, 0, 1)
 
-[node name="child" type="Node2D" parent="."]
+[node name="child" type="Node2D" parent="." unique_id=132026793]
 position = Vector2(16, 16)
 
-[node name="brick" type="Node2D" parent="child"]
+[node name="brick" type="Node2D" parent="child" unique_id=2056829853]
 
-[node name="bullets" type="Node2D" parent="child"]
+[node name="bullets" type="Node2D" parent="child" unique_id=1116613856]
 
-[node name="tanks" type="Node2D" parent="child"]
+[node name="tanks" type="Node2D" parent="child" unique_id=1343505487]
 
-[node name="other" type="Node2D" parent="child"]
+[node name="other" type="Node2D" parent="child" unique_id=971651863]
 
-[node name="gui" type="Control" parent="."]
+[node name="gui" type="Control" parent="." unique_id=1208147037]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 theme = ExtResource("2_t5lf4")
 
-[node name="enemyList" type="GridContainer" parent="gui"]
+[node name="enemyList" type="GridContainer" parent="gui" unique_id=336876914]
 layout_mode = 0
 offset_left = 457.0
 offset_top = 23.0
@@ -46,32 +46,32 @@ offset_right = 497.0
 offset_bottom = 63.0
 columns = 2
 
-[node name="p1Num" type="VBoxContainer" parent="gui"]
+[node name="p1Num" type="VBoxContainer" parent="gui" unique_id=2055174754]
 layout_mode = 0
 offset_left = 456.0
 offset_top = 234.0
 offset_right = 496.0
 offset_bottom = 274.0
 
-[node name="Label" type="Label" parent="gui/p1Num"]
+[node name="Label" type="Label" parent="gui/p1Num" unique_id=599583253]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "1p"
 uppercase = true
 
-[node name="hbox" type="HBoxContainer" parent="gui/p1Num"]
+[node name="hbox" type="HBoxContainer" parent="gui/p1Num" unique_id=768346144]
 layout_mode = 2
 
-[node name="TextureRect" type="TextureRect" parent="gui/p1Num/hbox"]
+[node name="TextureRect" type="TextureRect" parent="gui/p1Num/hbox" unique_id=1860754452]
 layout_mode = 2
 texture = ExtResource("3_us57j")
 
-[node name="Label" type="Label" parent="gui/p1Num/hbox"]
+[node name="Label" type="Label" parent="gui/p1Num/hbox" unique_id=2039226910]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "0"
 
-[node name="p2Num" type="VBoxContainer" parent="gui"]
+[node name="p2Num" type="VBoxContainer" parent="gui" unique_id=425980457]
 visible = false
 layout_mode = 0
 offset_left = 456.0
@@ -79,36 +79,36 @@ offset_top = 288.0
 offset_right = 496.0
 offset_bottom = 328.0
 
-[node name="Label" type="Label" parent="gui/p2Num"]
+[node name="Label" type="Label" parent="gui/p2Num" unique_id=1448873740]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "2p"
 uppercase = true
 
-[node name="hbox" type="HBoxContainer" parent="gui/p2Num"]
+[node name="hbox" type="HBoxContainer" parent="gui/p2Num" unique_id=1903593371]
 layout_mode = 2
 
-[node name="TextureRect" type="TextureRect" parent="gui/p2Num/hbox"]
+[node name="TextureRect" type="TextureRect" parent="gui/p2Num/hbox" unique_id=1072755378]
 layout_mode = 2
 texture = ExtResource("3_us57j")
 
-[node name="Label" type="Label" parent="gui/p2Num/hbox"]
+[node name="Label" type="Label" parent="gui/p2Num/hbox" unique_id=1258253584]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "0"
 
-[node name="vbox" type="VBoxContainer" parent="gui"]
+[node name="vbox" type="VBoxContainer" parent="gui" unique_id=5527865]
 layout_mode = 0
 offset_left = 456.0
 offset_top = 373.0
 offset_right = 496.0
 offset_bottom = 413.0
 
-[node name="TextureRect" type="TextureRect" parent="gui/vbox"]
+[node name="TextureRect" type="TextureRect" parent="gui/vbox" unique_id=1658618657]
 layout_mode = 2
 texture = ExtResource("4_i01vf")
 
-[node name="name" type="Label" parent="gui/vbox"]
+[node name="name" type="Label" parent="gui/vbox" unique_id=842868287]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 text = "0"

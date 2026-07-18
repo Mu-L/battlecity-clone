@@ -1,7 +1,7 @@
 extends Node2D
 
 # 坦克选择位置列表（Y坐标）
-var posY = [188, 213, 238, 263, 288, 313, 338]
+var posY = [188, 213, 241, 270, 300, 327, 356]
 
 # 当前选择索引
 var index = 0
@@ -34,6 +34,9 @@ var selectedMode = mode.P1
 # 联机状态标签
 @onready var statusLabel = $OnlineDialog/VBoxContainer/statusLabel
 
+@onready var btnHost=$OnlineDialog/VBoxContainer/VBoxContainer2/btnHost
+@onready var btnJoin=$OnlineDialog/VBoxContainer/VBoxContainer2/btnJoin
+
 # 初始化函数
 func _ready():
 	RenderingServer.set_default_clear_color('#000') # 设置背景色为黑色
@@ -45,21 +48,21 @@ func _ready():
 	
 
 # 设置当前菜单模式
-func setMode(index):
+func setMode(_index):
 	tankAni.position.y = posY[index] # 更新坦克选择位置
-	if index == 0:
+	if _index == 0:
 		selectedMode = mode.P1 # 单人模式
-	elif index == 1:
+	elif _index == 1:
 		selectedMode = mode.P2 # 双人模式
-	elif index == 2:
+	elif _index == 2:
 		selectedMode = mode.ONLINE_HOST # 联机模式 - 创建房间
-	elif index == 3:
+	elif _index == 3:
 		selectedMode = mode.ONLINE_JOIN # 联机模式 - 加入房间
-	elif index == 4:
+	elif _index == 4:
 		selectedMode = mode.CONFIGMAP # 地图编辑器
-	elif index == 5:
+	elif _index == 5:
 		selectedMode = mode.SETTING # 设置
-	elif index == 6:
+	elif _index == 6:
 		selectedMode = mode.MAPVIEW # 地图查看
 
 # 开始游戏或进入对应模式
@@ -81,12 +84,14 @@ func startGame():
 		scene.selectLevel = true # 允许选择关卡
 		get_tree().root.add_child(scene) # 添加到根节点
 		get_tree().current_scene = scene # 设置为当前场景
-		queue_free() # 释放当前场景
-		
-	elif selectedMode == mode.ONLINE_HOST:
-		startOnlineHost() # 创建联机房间
-	elif selectedMode == mode.ONLINE_JOIN:
-		onlineDialog.popup_centered() # 弹出联机对话框
+		queue_free() # 释放当前场景		
+	#elif selectedMode == mode.ONLINE_HOST:
+		##startOnlineHost() # 创建联机房间
+		##onlineDialog.popup_exclusive =true
+		#onlineDialog.popup_centered()
+	#elif selectedMode == mode.ONLINE_JOIN:
+		##onlineDialog.popup_exclusive =true
+		#onlineDialog.popup_centered() # 弹出联机对话框
 	elif selectedMode == mode.MAPVIEW:
 		Game.changeScene("res://scene/map_view.tscn") # 进入地图查看场景
 	elif selectedMode == mode.SETTING:
@@ -109,21 +114,24 @@ func startOnlineHost():
 	Game.mode = Game.gameMode.ONLINE
 	Game.resetData()
 	
+	btnHost.disabled=true
+	btnJoin.disabled=true
+	
 	# 等待连接后进入游戏
-	var temp = load("res://scene/splash.tscn")
-	var scene = temp.instantiate()
-
-
-	scene.selectLevel = true
-	get_tree().root.add_child(scene)
-	get_tree().current_scene = scene
-	queue_free()
+	#var temp = load("res://scene/splash.tscn")
+	#var scene = temp.instantiate()
+#
+#
+	#scene.selectLevel = true
+	#get_tree().root.add_child(scene)
+	#get_tree().current_scene = scene
+	#queue_free()
 
 # 加入联机房间（作为客户端）
 func joinOnlineRoom():
-	var ip :String= ipInput.text
+	var ip :String= ipInput.text.strip_escapes()
 	var port = int(portInput.text) if portInput.text else 25001
-	
+
 	if ip.is_empty():
 		statusLabel.text = "请输入服务器IP"
 		return
@@ -136,6 +144,8 @@ func joinOnlineRoom():
 	# 设置联机模式
 	Game.mode = Game.gameMode.ONLINE
 	Game.resetData()
+	btnHost.disabled=true
+	btnJoin.disabled=true
 
 # 网络状态变化处理
 func _on_network_state_changed(state):
@@ -164,7 +174,7 @@ func _on_connection_failed(reason):
 	statusLabel.text = "连接失败: " + reason
 
 # 输入处理
-func _input(event):
+func _input(_event):
 	# 如果联机对话框可见，忽略菜单输入
 	if onlineDialog.visible:
 		return
@@ -192,8 +202,13 @@ func _input(event):
 func _on_button_pressed() -> void:
 	tipDialog.hide() # 隐藏提示对话框
 
-# 联机对话框确认按钮处理
+# 联机对话框确认按钮处理 作为主机
 func _on_online_connect_pressed():
+	startOnlineHost()
+	
+
+#加入房间
+func _on_btn_join_pressed() -> void:
 	joinOnlineRoom()
 
 # 联机对话框取消按钮处理

@@ -1,11 +1,11 @@
-[gd_scene load_steps=11 format=3 uid="uid://ddv6gbbnbw6vg"]
+[gd_scene format=3 uid="uid://ddv6gbbnbw6vg"]
 
-[ext_resource type="Script" uid="uid://cumngwld44ghl" path="res://script/welcome.gd" id="1_04a3m"]
+[ext_resource type="Script" uid="uid://df0jvmo4idrm" path="res://script/welcome.gd" id="1_04a3m"]
 [ext_resource type="Theme" uid="uid://bwtt6taomj0ql" path="res://theme/theme.tres" id="2_07xfm"]
-[ext_resource type="Texture2D" uid="uid://b6u2r3v1lnoyj" path="res://sprite/battle_city.png" id="2_r5w1e"]
-[ext_resource type="Texture2D" uid="uid://dhmpxs1upfbvl" path="res://sprite/tank_main1.png" id="3_8enbu"]
-[ext_resource type="Texture2D" uid="uid://c8one8cijcpaf" path="res://sprite/tank_main2.png" id="4_ap5kp"]
-[ext_resource type="FontFile" uid="uid://dhbxwggug8gc7" path="res://font/prstartk.ttf" id="6_si833"]
+[ext_resource type="Texture2D" uid="uid://c1w7k1u7i0q8y" path="res://sprite/battle_city.png" id="2_r5w1e"]
+[ext_resource type="Texture2D" uid="uid://didr4k777db1g" path="res://sprite/tank_main1.png" id="3_8enbu"]
+[ext_resource type="Texture2D" uid="uid://dwukf2fonspxf" path="res://sprite/tank_main2.png" id="4_ap5kp"]
+[ext_resource type="FontFile" uid="uid://dne4kfa5qmsu2" path="res://font/prstartk.ttf" id="6_si833"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_0jgil"]
 animations = [{
@@ -16,7 +16,7 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("4_ap5kp")
 }],
-"loop": true,
+"loop": 1,
 "name": &"default",
 "speed": 10.0
 }]
@@ -82,102 +82,102 @@ _data = {
 &"move": SubResource("Animation_7g7pq")
 }
 
-[node name="welcome" type="Node2D"]
+[node name="welcome" type="Node2D" unique_id=1229214918]
 script = ExtResource("1_04a3m")
 
-[node name="main" type="Node2D" parent="."]
+[node name="main" type="Node2D" parent="." unique_id=276699823]
 
-[node name="Control" type="Control" parent="main"]
+[node name="Control" type="Control" parent="main" unique_id=1662265870]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 theme = ExtResource("2_07xfm")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="main/Control"]
+[node name="HBoxContainer" type="HBoxContainer" parent="main/Control" unique_id=1580849038]
 layout_mode = 0
 offset_left = 184.0
 offset_right = 364.0
 offset_bottom = 40.0
 
-[node name="Label" type="Label" parent="main/Control/HBoxContainer"]
+[node name="Label" type="Label" parent="main/Control/HBoxContainer" unique_id=1889234869]
 layout_mode = 2
 text = "HI - "
 
-[node name="Label2" type="Label" parent="main/Control/HBoxContainer"]
+[node name="Label2" type="Label" parent="main/Control/HBoxContainer" unique_id=1650452312]
 layout_mode = 2
 text = "000000"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="main/Control"]
+[node name="VBoxContainer" type="VBoxContainer" parent="main/Control" unique_id=1083238112]
 layout_mode = 0
 offset_left = 207.0
 offset_top = 181.0
 offset_right = 399.0
 offset_bottom = 365.0
 
-[node name="MarginContainer" type="MarginContainer" parent="main/Control/VBoxContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="main/Control/VBoxContainer" unique_id=1017328014]
 layout_mode = 2
 theme_override_constants/margin_bottom = 8
 
-[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer"]
+[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer" unique_id=2093526402]
 layout_mode = 2
 text = "1 player"
 uppercase = true
 
-[node name="MarginContainer3" type="MarginContainer" parent="main/Control/VBoxContainer"]
+[node name="MarginContainer3" type="MarginContainer" parent="main/Control/VBoxContainer" unique_id=476997199]
 layout_mode = 2
 theme_override_constants/margin_bottom = 8
 
-[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer3"]
+[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer3" unique_id=1611756517]
 layout_mode = 2
 text = "2 player2"
 uppercase = true
 
-[node name="MarginContainer7" type="MarginContainer" parent="main/Control/VBoxContainer"]
+[node name="MarginContainer7" type="MarginContainer" parent="main/Control/VBoxContainer" unique_id=1779902383]
 layout_mode = 2
 theme_override_constants/margin_bottom = 8
 
-[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer7"]
+[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer7" unique_id=371466005]
 layout_mode = 2
 text = "create room"
 uppercase = true
 
-[node name="MarginContainer8" type="MarginContainer" parent="main/Control/VBoxContainer"]
+[node name="MarginContainer8" type="MarginContainer" parent="main/Control/VBoxContainer" unique_id=682301883]
 layout_mode = 2
 theme_override_constants/margin_bottom = 8
 
-[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer8"]
+[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer8" unique_id=218855009]
 layout_mode = 2
 text = "join room"
 uppercase = true
 
-[node name="MarginContainer4" type="MarginContainer" parent="main/Control/VBoxContainer"]
+[node name="MarginContainer4" type="MarginContainer" parent="main/Control/VBoxContainer" unique_id=245861101]
 layout_mode = 2
 theme_override_constants/margin_bottom = 8
 
-[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer4"]
+[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer4" unique_id=1584120022]
 layout_mode = 2
 text = "construction"
 uppercase = true
 
-[node name="MarginContainer5" type="MarginContainer" parent="main/Control/VBoxContainer"]
+[node name="MarginContainer5" type="MarginContainer" parent="main/Control/VBoxContainer" unique_id=1295047503]
 layout_mode = 2
 theme_override_constants/margin_bottom = 8
 
-[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer5"]
+[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer5" unique_id=1502612636]
 layout_mode = 2
 text = "setting"
 uppercase = true
 
-[node name="MarginContainer6" type="MarginContainer" parent="main/Control/VBoxContainer"]
+[node name="MarginContainer6" type="MarginContainer" parent="main/Control/VBoxContainer" unique_id=2025127548]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer6"]
+[node name="Label" type="Label" parent="main/Control/VBoxContainer/MarginContainer6" unique_id=427894093]
 layout_mode = 2
 text = "map view"
 uppercase = true
 
-[node name="Label" type="Label" parent="main/Control"]
+[node name="Label" type="Label" parent="main/Control" unique_id=1620196990]
 layout_mode = 0
 offset_left = 207.0
 offset_top = 381.0
@@ -187,7 +187,7 @@ theme_override_colors/font_color = Color(0.988235, 0.211765, 0.109804, 1)
 text = "namcot"
 uppercase = true
 
-[node name="copyright" type="Label" parent="main/Control"]
+[node name="copyright" type="Label" parent="main/Control" unique_id=1508777720]
 layout_mode = 0
 offset_left = 72.0
 offset_top = 410.0
@@ -198,79 +198,91 @@ all right reserved"
 horizontal_alignment = 1
 uppercase = true
 
-[node name="Sprite2D" type="Sprite2D" parent="main"]
+[node name="Sprite2D" type="Sprite2D" parent="main" unique_id=61159477]
 position = Vector2(256, 101)
 texture = ExtResource("2_r5w1e")
 
-[node name="tankAni" type="AnimatedSprite2D" parent="main"]
+[node name="tankAni" type="AnimatedSprite2D" parent="main" unique_id=1934072450]
 position = Vector2(171, 188)
 rotation = 1.5708
 sprite_frames = SubResource("SpriteFrames_0jgil")
 autoplay = "default"
 
-[node name="payer" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_osfex")
-}
+[node name="payer" type="AnimationPlayer" parent="." unique_id=1434156609]
+libraries/ = SubResource("AnimationLibrary_osfex")
 
-[node name="PopupPanel" type="PopupPanel" parent="."]
+[node name="PopupPanel" type="PopupPanel" parent="." unique_id=1807981478]
 size = Vector2i(496, 192)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PopupPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PopupPanel" unique_id=1600203991]
 offset_left = 4.0
 offset_top = 4.0
 offset_right = 492.0
 offset_bottom = 188.0
 
-[node name="Label" type="Label" parent="PopupPanel/VBoxContainer"]
+[node name="Label" type="Label" parent="PopupPanel/VBoxContainer" unique_id=913082665]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 6
 theme_override_fonts/font = ExtResource("6_si833")
 text = "maps is empty"
 
-[node name="Button" type="Button" parent="PopupPanel/VBoxContainer"]
+[node name="Button" type="Button" parent="PopupPanel/VBoxContainer" unique_id=930736953]
 layout_mode = 2
 text = "OK"
 
-[node name="OnlineDialog" type="PopupPanel" parent="."]
-size = Vector2i(204, 101)
-visible = true
+[node name="OnlineDialog" type="PopupPanel" parent="." unique_id=306268535]
+oversampling_override = 1.0
+size = Vector2i(240, 113)
+exclude_from_capture = true
 
-[node name="VBoxContainer" type="VBoxContainer" parent="OnlineDialog"]
+[node name="VBoxContainer" type="VBoxContainer" parent="OnlineDialog" unique_id=1364553728]
 offset_left = 4.0
 offset_top = 4.0
-offset_right = 200.0
-offset_bottom = 97.0
+offset_right = 236.0
+offset_bottom = 109.0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="OnlineDialog/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="OnlineDialog/VBoxContainer" unique_id=185166639]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="OnlineDialog/VBoxContainer/HBoxContainer"]
+[node name="Label" type="Label" parent="OnlineDialog/VBoxContainer/HBoxContainer" unique_id=1042365550]
 layout_mode = 2
 text = "ip"
 
-[node name="ipInput" type="LineEdit" parent="OnlineDialog/VBoxContainer/HBoxContainer"]
+[node name="ipInput" type="LineEdit" parent="OnlineDialog/VBoxContainer/HBoxContainer" unique_id=14829684]
 layout_mode = 2
 text = "127.0.0.1"
 
-[node name="Label2" type="Label" parent="OnlineDialog/VBoxContainer/HBoxContainer"]
+[node name="Label2" type="Label" parent="OnlineDialog/VBoxContainer/HBoxContainer" unique_id=264011448]
 layout_mode = 2
 text = "port"
 
-[node name="portInput" type="LineEdit" parent="OnlineDialog/VBoxContainer/HBoxContainer"]
+[node name="portInput" type="LineEdit" parent="OnlineDialog/VBoxContainer/HBoxContainer" unique_id=417593725]
 layout_mode = 2
 text = "25001"
 
-[node name="statusLabel" type="Label" parent="OnlineDialog/VBoxContainer"]
+[node name="statusLabel" type="Label" parent="OnlineDialog/VBoxContainer" unique_id=1982607242]
 layout_mode = 2
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="OnlineDialog/VBoxContainer"]
+[node name="VBoxContainer2" type="HBoxContainer" parent="OnlineDialog/VBoxContainer" unique_id=1247421534]
 layout_mode = 2
 
-[node name="Button" type="Button" parent="OnlineDialog/VBoxContainer/VBoxContainer2"]
+[node name="btnHost" type="Button" parent="OnlineDialog/VBoxContainer/VBoxContainer2" unique_id=1072543560]
 layout_mode = 2
-text = "connect"
+size_flags_horizontal = 3
+text = "host"
+
+[node name="btnJoin" type="Button" parent="OnlineDialog/VBoxContainer/VBoxContainer2" unique_id=1069904419]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "join room"
+
+[node name="Button" type="Button" parent="OnlineDialog/VBoxContainer/VBoxContainer2" unique_id=1383401499]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "cancel"
 
 [connection signal="pressed" from="PopupPanel/VBoxContainer/Button" to="." method="_on_button_pressed"]
-[connection signal="pressed" from="OnlineDialog/VBoxContainer/VBoxContainer2/Button" to="." method="_on_online_connect_pressed"]
+[connection signal="pressed" from="OnlineDialog/VBoxContainer/VBoxContainer2/btnHost" to="." method="_on_online_connect_pressed"]
+[connection signal="pressed" from="OnlineDialog/VBoxContainer/VBoxContainer2/btnJoin" to="." method="_on_btn_join_pressed"]
+[connection signal="pressed" from="OnlineDialog/VBoxContainer/VBoxContainer2/Button" to="." method="_on_online_cancel_pressed"]

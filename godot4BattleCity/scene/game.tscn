@@ -1,6 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://cwcvesg7003t2"]
+[gd_scene format=3 uid="uid://cwcvesg7003t2"]
 
-[ext_resource type="Script" uid="uid://7jsor8wsf1c" path="res://script/gameScene.gd" id="1_pcuhv"]
+[ext_resource type="Script" uid="uid://ddyewtcnajb7g" path="res://script/gameScene.gd" id="1_pcuhv"]
 [ext_resource type="PackedScene" uid="uid://pn880e5ss888" path="res://scene/map.tscn" id="2_x0pom"]
 [ext_resource type="PackedScene" uid="uid://cy1ks8l72tmpl" path="res://scene/auto_hide_label.tscn" id="3_b47cw"]
 
@@ -65,34 +65,34 @@ _data = {
 &"gameover": SubResource("Animation_owrr2")
 }
 
-[node name="game" type="Node2D"]
+[node name="game" type="Node2D" unique_id=2086040601]
 script = ExtResource("1_pcuhv")
 
-[node name="map" parent="." instance=ExtResource("2_x0pom")]
+[node name="map" parent="." unique_id=1198697312 instance=ExtResource("2_x0pom")]
 
-[node name="produceTimer" type="Timer" parent="."]
+[node name="produceTimer" type="Timer" parent="." unique_id=379236834]
 process_callback = 0
 wait_time = 2.0
 
-[node name="nextLevel" type="Timer" parent="."]
+[node name="nextLevel" type="Timer" parent="." unique_id=452656123]
 process_callback = 0
 wait_time = 1.5
 one_shot = true
 
-[node name="shovelTimer" type="Timer" parent="."]
+[node name="shovelTimer" type="Timer" parent="." unique_id=1056005827]
 process_callback = 0
 wait_time = 12.0
 one_shot = true
 
-[node name="clockTimer" type="Timer" parent="."]
+[node name="clockTimer" type="Timer" parent="." unique_id=170790427]
 process_callback = 0
 wait_time = 8.0
 one_shot = true
 
-[node name="other" type="Node2D" parent="."]
+[node name="other" type="Node2D" parent="." unique_id=2134838229]
 z_index = 11
 
-[node name="autoHideLabel" parent="other" instance=ExtResource("3_b47cw")]
+[node name="autoHideLabel" parent="other" unique_id=1479722276 instance=ExtResource("3_b47cw")]
 visible = false
 offset_left = 199.0
 offset_top = 452.0
@@ -100,10 +100,8 @@ offset_right = 199.0
 offset_bottom = 452.0
 autoHide = false
 
-[node name="player" type="AnimationPlayer" parent="."]
-libraries = {
-&"": SubResource("AnimationLibrary_80y2n")
-}
+[node name="player" type="AnimationPlayer" parent="." unique_id=2066790807]
+libraries/ = SubResource("AnimationLibrary_80y2n")
 
 [connection signal="timeout" from="produceTimer" to="." method="_on_produce_timer_timeout"]
 [connection signal="timeout" from="nextLevel" to="." method="_on_next_level_timeout"]

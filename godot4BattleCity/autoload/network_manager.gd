@@ -104,7 +104,8 @@ func getState() -> NetworkState:
 
 # 检查是否在线联机模式
 func isOnline() -> bool:
-	return get_tree().get_multiplayer().has_multiplayer_peer()
+	#print( multiplayer.has_multiplayer_peer())
+	return !players.is_empty()
 
 
 # 获取玩家数量
@@ -149,7 +150,7 @@ func notifyPlayerLeft(peerId:int):
 # 有新的 peer 连接
 func _on_peer_connected(peerId:int):
 	print("Peer connected: ", peerId)
-	localPeerId = get_tree().get_multiplayer().get_unique_id()
+	localPeerId = multiplayer.get_unique_id()
 	
 	if isServer:
 		# 服务端记录新玩家
