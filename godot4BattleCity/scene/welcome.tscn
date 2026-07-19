@@ -231,9 +231,15 @@ text = "maps is empty"
 layout_mode = 2
 text = "OK"
 
-[node name="OnlineDialog" type="PopupPanel" parent="." unique_id=306268535]
+[node name="OnlineDialog" type="Window" parent="." unique_id=1276913536]
+transparent_bg = true
 oversampling_override = 1.0
+position = Vector2i(0, 36)
 size = Vector2i(240, 113)
+visible = false
+exclusive = true
+transparent = true
+mouse_passthrough = true
 exclude_from_capture = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="OnlineDialog" unique_id=1364553728]
@@ -283,6 +289,7 @@ size_flags_horizontal = 3
 text = "cancel"
 
 [connection signal="pressed" from="PopupPanel/VBoxContainer/Button" to="." method="_on_button_pressed"]
+[connection signal="close_requested" from="OnlineDialog" to="." method="_on_online_dialog_close_requested"]
 [connection signal="pressed" from="OnlineDialog/VBoxContainer/VBoxContainer2/btnHost" to="." method="_on_online_connect_pressed"]
 [connection signal="pressed" from="OnlineDialog/VBoxContainer/VBoxContainer2/btnJoin" to="." method="_on_btn_join_pressed"]
 [connection signal="pressed" from="OnlineDialog/VBoxContainer/VBoxContainer2/Button" to="." method="_on_online_cancel_pressed"]

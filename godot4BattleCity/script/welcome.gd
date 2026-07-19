@@ -86,11 +86,8 @@ func startGame():
 		get_tree().current_scene = scene # 设置为当前场景
 		queue_free() # 释放当前场景		
 	#elif selectedMode == mode.ONLINE_HOST:
-		##startOnlineHost() # 创建联机房间
-		##onlineDialog.popup_exclusive =true
 		#onlineDialog.popup_centered()
 	#elif selectedMode == mode.ONLINE_JOIN:
-		##onlineDialog.popup_exclusive =true
 		#onlineDialog.popup_centered() # 弹出联机对话框
 	elif selectedMode == mode.MAPVIEW:
 		Game.changeScene("res://scene/map_view.tscn") # 进入地图查看场景
@@ -147,6 +144,17 @@ func joinOnlineRoom():
 	btnHost.disabled=true
 	btnJoin.disabled=true
 
+@rpc("any_peer","call_local")
+func start():
+	# 连接成功后进入游戏
+	var temp = load("res://scene/splash.tscn")
+	var scene = temp.instantiate()
+	scene.selectLevel = true
+	get_tree().root.add_child(scene)
+	get_tree().current_scene = scene
+	onlineDialog.hide()
+	queue_free()
+
 # 网络状态变化处理
 func _on_network_state_changed(state):
 	match state:
@@ -157,13 +165,14 @@ func _on_network_state_changed(state):
 		NetworkManager.NetworkState.CONNECTED:
 			statusLabel.text = "连接成功！"
 			# 连接成功后进入游戏
-			var temp = load("res://scene/splash.tscn")
-			var scene = temp.instantiate()
-			scene.selectLevel = true
-			get_tree().root.add_child(scene)
-			get_tree().current_scene = scene
-			onlineDialog.hide()
-			queue_free()
+			#var temp = load("res://scene/splash.tscn")
+			#var scene = temp.instantiate()
+			#scene.selectLevel = true
+			#get_tree().root.add_child(scene)
+			#get_tree().current_scene = scene
+			#onlineDialog.hide()
+			#queue_free()
+			start.rpc()
 		NetworkManager.NetworkState.DISCONNECTED:
 			statusLabel.text = "连接已断开"
 		NetworkManager.NetworkState.IDLE:
@@ -214,3 +223,7 @@ func _on_btn_join_pressed() -> void:
 # 联机对话框取消按钮处理
 func _on_online_cancel_pressed():
 	onlineDialog.hide() # 隐藏联机对话框
+
+
+func _on_online_dialog_close_requested() -> void:
+	onlineDialog.hide()
