@@ -67,8 +67,17 @@ var gameLevel=0 #游戏关卡
 var mode=gameMode.SINGLE
 
 # 联机模式相关数据
-var onlinePeerId:int = 1  # 当前玩家的网络 peer ID
-var onlinePlayerId:int = playerId.p1  # 当前玩家的本地玩家 ID
+var scene_data:Dictionary = {}  # 联机切换场景时附带的参数
+
+# 联机状态辅助
+func isOnline() -> bool:
+	return NetworkManager.is_online()
+
+func isServer() -> bool:
+	return NetworkManager.is_server()
+
+func isClient() -> bool:
+	return NetworkManager.is_client()
 
 #信号
 signal baseDestroyed
@@ -90,7 +99,7 @@ func _ready():
 
 func changeScene(stagePath):
 	set_process_input(false)
-	get_tree().change_scene_to_file(stagePath)
+	NetworkManager.change_scene(stagePath)
 	set_process_input(true)
 
 #初始化地图

@@ -19,6 +19,17 @@ This is a classic Battle City game clone based on the Godot engine, including bo
 ### 通用控制 / Common Controls:
 - ENTER: 选择 / Select
 
+## 联机对战 / Online Multiplayer (Godot 4)
+
+主菜单选择 `create room` / `join room` 打开联机对话框：
+
+- **主机**：填写端口（默认 `25001`），点击 `host`，等待另一名玩家加入后自动开始游戏。主机 = 玩家 1。
+- **客户端**：填写主机的 **局域网 IP** 和相同端口，点击 `join room`。客户端 = 玩家 2。
+- 联机对战时游戏由主机（服务端）统一模拟，客户端只发送按键并显示服务端同步过来的画面。
+- 关卡、分数、生命、砖块、敌人都由主机同步；关卡推进与场景切换也由主机决定。
+- 主机退出或掉线时，客户端会自动返回主菜单。
+- 联机需要双方使用**相同版本**的游戏，并确保防火墙放行该 UDP 端口。
+
 ## 项目结构 / Project Structure
 
 ### Godot 3 版本 / Godot 3 Version (`godot3BattleCity/`)
@@ -64,18 +75,19 @@ This is a classic Battle City game clone based on the Godot engine, including bo
 ## 技术特点 / Technical Features
 
 1. **双版本支持**: 同时支持 Godot 3 和 Godot 4
-2. **多玩家模式**: 支持双人本地游戏
+2. **多玩家模式**: 支持单人、双人本地和双人联机
 3. **关卡系统**: 包含多个预定义关卡
 4. **音效系统**: 完整的游戏音效
 5. **视觉效果**: 包含坦克爆炸、子弹特效等
 6. **输入系统**: 可自定义的输入绑定
+7. **联机同步**: 基于 Godot 内置 ENet，服务端权威 + 状态快照同步
 
 ## 开发计划 / Development Plan
 
 - [ ] 地图编辑器 (Map editor)
 - [ ] 地图查看 (Map viewing)
 - [ ] Godot 4 版本完整支持 (Godot 4 version support)
-- [ ] 多人联机 (Multiplayer)
+- [x] 多人联机 (Multiplayer) — Godot 4 版本已支持双人联机
 
 ## 导出说明 / Export Instructions
 

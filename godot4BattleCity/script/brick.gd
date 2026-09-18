@@ -42,6 +42,9 @@ func changeType(value):
 
 # 碰撞检测处理（子弹击中砖块）
 func _on_area_entered(area):
+	# 联机客户端不处理碰撞，砖块变化由服务端同步
+	if Game.isClient():
+		return
 	if area.get('objType')==Game.objType.BULLET:  # 检测是否为子弹
 		if type ==Game.brickType.WALL:  # 墙壁类型
 			if area.get('dir')!=null:  # 子弹方向不为空

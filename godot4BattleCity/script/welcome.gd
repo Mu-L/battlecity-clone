@@ -42,8 +42,13 @@ func _ready():
 	RenderingServer.set_default_clear_color('#000') # 设置背景色为黑色
 	player.play("move") # 播放玩家动画
 	
-	# 连接网络管理器信号
-	NetworkManager.network_state_changed.connect(_on_network_state_changed)
+	# 返回主菜单时清理联机状态
+	NetworkManager.close()
+	Game.mode = Game.gameMode.SINGLE
+	Game.scene_data = {}
+	# 连接联机信号
+	NetworkManager.player_joined.connect(_on_player_joined)
+	NetworkManager.joined_server.connect(_on_joined_server)
 	NetworkManager.connection_failed.connect(_on_connection_failed)
 	
 
@@ -85,10 +90,8 @@ func startGame():
 		get_tree().root.add_child(scene) # 添加到根节点
 		get_tree().current_scene = scene # 设置为当前场景
 		queue_free() # 释放当前场景		
-	#elif selectedMode == mode.ONLINE_HOST:
-		#onlineDialog.popup_centered()
-	#elif selectedMode == mode.ONLINE_JOIN:
-		#onlineDialog.popup_centered() # 弹出联机对话框
+	elif selectedMode == mode.ONLINE_HOST or selectedMode == mode.ONLINE_JOIN:
+		openOnlineDialog() # 弹出联机对话框
 	elif selectedMode == mode.MAPVIEW:
 		Game.changeScene("res://scene/map_view.tscn") # 进入地图查看场景
 	elif selectedMode == mode.SETTING:
@@ -96,91 +99,60 @@ func startGame():
 	elif selectedMode == mode.CONFIGMAP:
 		Game.changeScene("res://scene/editmap.tscn") # 进入地图编辑器场景
 
+# 打开联机对话框（普通 Window，点击外部或按 ESC 都不会自动关闭）
+func openOnlineDialog():
+	onlineDialog.position = Vector2i(106, 114) # 在 512x448 视口中居中
+	onlineDialog.show()
+
 # 创建联机房间（作为主机）
 func startOnlineHost():
 	if Game.mapList.size() == 0:
 		tipDialog.popup_centered()
 		return
-	
 	statusLabel.text = "正在创建房间..."
-	
-	# 创建服务器
-	NetworkManager.createServer(25001, 2)
-	
-	# 设置联机模式
+	if not NetworkManager.host():
+		statusLabel.text = "创建房间失败"
+		return
 	Game.mode = Game.gameMode.ONLINE
 	Game.resetData()
-	
-	btnHost.disabled=true
-	btnJoin.disabled=true
-	
-	# 等待连接后进入游戏
-	#var temp = load("res://scene/splash.tscn")
-	#var scene = temp.instantiate()
-#
-#
-	#scene.selectLevel = true
-	#get_tree().root.add_child(scene)
-	#get_tree().current_scene = scene
-	#queue_free()
+	btnHost.disabled = true
+	btnJoin.disabled = true
+	statusLabel.text = "房间创建成功，等待玩家加入..."
 
 # 加入联机房间（作为客户端）
 func joinOnlineRoom():
-	var ip :String= ipInput.text.strip_escapes()
-	var port = int(portInput.text) if portInput.text else 25001
-
+	var ip: String = ipInput.text.strip_edges()
+	var port = int(portInput.text) if portInput.text else NetworkManager.DEFAULT_PORT
 	if ip.is_empty():
 		statusLabel.text = "请输入服务器IP"
 		return
-	
-	statusLabel.text = "正在连接到 " + ip + ":" + str(port) + "..."
-	
-	# 连接到服务器
-	NetworkManager.joinServer(ip, port)
-	
-	# 设置联机模式
+	if not NetworkManager.join(ip, port):
+		statusLabel.text = "连接失败"
+		return
 	Game.mode = Game.gameMode.ONLINE
 	Game.resetData()
-	btnHost.disabled=true
-	btnJoin.disabled=true
+	btnHost.disabled = true
+	btnJoin.disabled = true
+	statusLabel.text = "正在连接到 " + ip + ":" + str(port) + "..."
 
-@rpc("any_peer","call_local")
-func start():
-	# 连接成功后进入游戏
-	var temp = load("res://scene/splash.tscn")
-	var scene = temp.instantiate()
-	scene.selectLevel = true
-	get_tree().root.add_child(scene)
-	get_tree().current_scene = scene
-	onlineDialog.hide()
-	queue_free()
+# 主机：有玩家加入，开始游戏
+func _on_player_joined(_peer_id: int) -> void:
+	if not NetworkManager.is_server():
+		return
+	statusLabel.text = "玩家已加入，开始游戏！"
+	await get_tree().create_timer(0.3).timeout
+	NetworkManager.change_scene("res://scene/splash.tscn")
 
-# 网络状态变化处理
-func _on_network_state_changed(state):
-	match state:
-		NetworkManager.NetworkState.HOSTING:
-			statusLabel.text = "房间创建成功，等待其他玩家..."
-		NetworkManager.NetworkState.CONNECTING:
-			statusLabel.text = "正在连接..."
-		NetworkManager.NetworkState.CONNECTED:
-			statusLabel.text = "连接成功！"
-			# 连接成功后进入游戏
-			#var temp = load("res://scene/splash.tscn")
-			#var scene = temp.instantiate()
-			#scene.selectLevel = true
-			#get_tree().root.add_child(scene)
-			#get_tree().current_scene = scene
-			#onlineDialog.hide()
-			#queue_free()
-			start.rpc()
-		NetworkManager.NetworkState.DISCONNECTED:
-			statusLabel.text = "连接已断开"
-		NetworkManager.NetworkState.IDLE:
-			statusLabel.text = ""
+# 客户端：连接主机成功，等待主机开始游戏
+func _on_joined_server() -> void:
+	statusLabel.text = "已连接，等待主机开始游戏..."
 
 # 连接失败处理
 func _on_connection_failed(reason):
 	statusLabel.text = "连接失败: " + reason
+	btnHost.disabled = false
+	btnJoin.disabled = false
+	Game.mode = Game.gameMode.SINGLE
 
 # 输入处理
 func _input(_event):
@@ -222,8 +194,12 @@ func _on_btn_join_pressed() -> void:
 
 # 联机对话框取消按钮处理
 func _on_online_cancel_pressed():
+	NetworkManager.close()
+	Game.mode = Game.gameMode.SINGLE
+	btnHost.disabled = false
+	btnJoin.disabled = false
 	onlineDialog.hide() # 隐藏联机对话框
 
 
 func _on_online_dialog_close_requested() -> void:
-	onlineDialog.hide()
+	_on_online_cancel_pressed()

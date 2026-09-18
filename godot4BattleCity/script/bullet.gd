@@ -66,6 +66,9 @@ func setPower(value):
 
 # 物理过程处理
 func _physics_process(delta):
+	# 联机客户端不移动子弹，位置由服务端快照驱动
+	if Game.isClient():
+		return
 	if state==Game.objState.START:  # 如果子弹状态为开始
 		position+=vec*delta  # 根据速度向量移动
 		
@@ -103,6 +106,8 @@ func addexplode(playSound=false):
 
 # 碰撞检测处理
 func _on_area_entered(area):
+	if Game.isClient():
+		return
 	if area.get_instance_id()==ownId||isDestroy:  # 忽略自身和已销毁的子弹
 		return	
 	

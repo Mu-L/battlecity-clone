@@ -1,192 +1,146 @@
 extends Node
-
-# 网络状态枚举
-enum NetworkState {
-	IDLE,  # 未连接
-	HOSTING,  # 作为主机（服务端+客户端）
-	CONNECTING,  # 正在连接
-	CONNECTED,  # 已连接（作为客户端）
-	DISCONNECTED  # 已断开
-}
-
-# 当前网络状态
-var currentState:NetworkState = NetworkState.IDLE
-# 本机 peer ID
-var localPeerId:int = 1
-# 服务器端口
-var serverPort:int = 25001
-# 是否为服务端
-var isServer:bool = false
+## 联机管理器（基于 Godot 内置 ENet 多点联机）
+## 主机（服务端）= 玩家1，客户端 = 玩家2
 
 # 信号
-signal network_state_changed(state:NetworkState)
-signal peer_connected(peerId:int)
-signal peer_disconnected(peerId:int)
-signal connection_failed(reason:String)
-signal player_joined(peerId:int, playerName:String)
-signal player_left(peerId:int)
+signal server_started                     # 主机创建房间成功
+signal joined_server                      # 客户端成功连接主机
+signal player_joined(peer_id: int)        # 主机：有玩家加入房间
+signal player_left(peer_id: int)          # 有玩家离开
+signal player_input(input: Dictionary)    # 主机：收到客户端（玩家2）的按键
+signal connection_failed(reason: String)  # 创建/连接失败
 
-# 玩家列表（peerId -> 玩家信息）
-var players:Dictionary = {}
+const DEFAULT_PORT := 25001
+const MAX_PLAYERS := 2
+
+# 服务器端口
+var port := DEFAULT_PORT
+# 是否处于联机状态
+var online := false
+
+# 是否正在主动断开（避免断开信号重复处理）
+var _closing := false
 
 
 # 初始化函数
-func _ready():
-	# 连接网络信号
-	get_tree().get_multiplayer().peer_connected.connect(_on_peer_connected)
-	get_tree().get_multiplayer().peer_disconnected.connect(_on_peer_disconnected)
-	get_tree().get_multiplayer().connection_failed.connect(_on_connection_failed)
-
-# 创建服务器（作为主机）
-func createServer(port:int = 25001, maxPlayers:int = 4):
-	# 如果已连接，先断开
-	if get_tree().get_multiplayer().has_multiplayer_peer():
-		disconnectServer()
-	
-	serverPort = port
-	
-	# 创建 ENet 网络连接（Godot 4 使用 ENetMultiplayerPeer）
-	var peer = ENetMultiplayerPeer.new()
-	var error = peer.create_server(port, maxPlayers)
-	
-	if error == OK:
-		get_tree().get_multiplayer().multiplayer_peer = peer
-		isServer = true
-		localPeerId = 1
-		currentState = NetworkState.HOSTING
-		players[1] = {"name": "Host", "playerId": Game.playerId.p1}
-		emit_signal("network_state_changed", currentState)
-		print("Server created on port ", port)
-	else:
-		emit_signal("connection_failed", "Failed to create server: " + str(error))
-		print("Failed to create server: ", error)
+func _ready() -> void:
+	var mp := multiplayer
+	mp.peer_connected.connect(_on_peer_connected)
+	mp.peer_disconnected.connect(_on_peer_disconnected)
+	mp.connected_to_server.connect(_on_connected_to_server)
+	mp.connection_failed.connect(_on_connection_failed)
+	mp.server_disconnected.connect(_on_server_disconnected)
 
 
-# 连接到服务器（作为客户端）
-func joinServer(ip:String, port:int = 25001):
-	# 如果已连接，先断开
-	if get_tree().get_multiplayer().has_multiplayer_peer():
-		disconnectServer()
-	
-	serverPort = port
-	currentState = NetworkState.CONNECTING
-	
-	# 创建 ENet 网络连接
-	var peer = ENetMultiplayerPeer.new()
-	var error = peer.create_client(ip, port)
-	
-	if error == OK:
-		get_tree().get_multiplayer().multiplayer_peer = peer
-		print("Connecting to ", ip, ":", port)
-	else:
-		currentState = NetworkState.IDLE
-		emit_signal("connection_failed", "Failed to connect: " + str(error))
-		print("Failed to connect: ", error)
+# 是否处于联机状态
+func is_online() -> bool:
+	return online and multiplayer.multiplayer_peer != null
 
 
-# 断开连接
-func disconnectServer():
-	if get_tree().get_multiplayer().has_multiplayer_peer():
-		get_tree().get_multiplayer().multiplayer_peer.close()
-		get_tree().get_multiplayer().multiplayer_peer = null
-	
-	isServer = false
-	currentState = NetworkState.DISCONNECTED
-	players.clear()
-	emit_signal("network_state_changed", currentState)
-	print("Disconnected from network")
+# 是否是主机（服务端）
+func is_server() -> bool:
+	return is_online() and multiplayer.is_server()
 
 
-# 获取当前网络状态
-func getState() -> NetworkState:
-	return currentState
+# 是否是客户端
+func is_client() -> bool:
+	return is_online() and not multiplayer.is_server()
 
 
-# 检查是否在线联机模式
-func isOnline() -> bool:
-	#print( multiplayer.has_multiplayer_peer())
-	return !players.is_empty()
+# 创建房间（作为主机）
+func host(p_port: int = DEFAULT_PORT) -> bool:
+	close()
+	var peer := ENetMultiplayerPeer.new()
+	if peer.create_server(p_port, MAX_PLAYERS) != OK:
+		connection_failed.emit("创建房间失败")
+		return false
+	multiplayer.multiplayer_peer = peer
+	port = p_port
+	online = true
+	server_started.emit()
+	return true
 
 
-# 获取玩家数量
-func getPlayerCount() -> int:
-	return players.size()
+# 加入房间（作为客户端）
+func join(ip: String, p_port: int = DEFAULT_PORT) -> bool:
+	close()
+	var peer := ENetMultiplayerPeer.new()
+	if peer.create_client(ip, p_port) != OK:
+		connection_failed.emit("连接失败")
+		return false
+	multiplayer.multiplayer_peer = peer
+	port = p_port
+	online = true
+	return true
 
 
-# 获取玩家信息
-func getPlayerInfo(peerId:int) -> Dictionary:
-	return players.get(peerId, {})
+# 断开联机
+func close() -> void:
+	_closing = true
+	if multiplayer.multiplayer_peer != null:
+		multiplayer.multiplayer_peer.close()
+		multiplayer.multiplayer_peer = null
+	online = false
+	_closing = false
 
 
-# 获取所有玩家列表
-func getAllPlayers() -> Array:
-	return players.keys()
+# 客户端：把本地玩家（玩家2）的按键发给主机
+func send_input(input: Dictionary) -> void:
+	if is_client():
+		_net_player_input.rpc_id(1, input)
 
 
-# 发送聊天消息（广播）
-@rpc("any_peer", "call_remote")
-func sendChatMessage(message:String):
-	emit_signal("chat_message_received", localPeerId, message)
+# 主机：接收客户端（玩家2）的按键
+@rpc("any_peer", "call_remote", "unreliable_ordered")
+func _net_player_input(input: Dictionary) -> void:
+	if is_server():
+		player_input.emit(input)
 
 
-# 玩家加入通知（RPC，由服务端调用）
-@rpc("any_peer", "call_remote")
-func notifyPlayerJoined(peerId:int, playerName:String):
-	players[peerId] = {"name": playerName}
-	emit_signal("player_joined", peerId, playerName)
+# 切换场景：单机直接切换；联机时由主机决定并通知所有客户端一起切换
+func change_scene(path: String, data: Dictionary = {}) -> void:
+	if is_client():
+		return
+	Game.scene_data = data
+	if is_online():
+		_net_goto_scene.rpc(path, Game.gameLevel, data)
+	get_tree().change_scene_to_file(path)
 
 
-# 玩家离开通知（RPC，由服务端调用）
-@rpc("any_peer", "call_remote")
-func notifyPlayerLeft(peerId:int):
-	if players.has(peerId):
-		var playerName = players[peerId]["name"]
-		players.erase(peerId)
-		emit_signal("player_left", peerId)
+@rpc("authority", "call_remote", "reliable")
+func _net_goto_scene(path: String, level: int, data: Dictionary) -> void:
+	Game.gameLevel = level
+	Game.scene_data = data
+	get_tree().change_scene_to_file(path)
 
 
 # 网络信号处理
 
-# 有新的 peer 连接
-func _on_peer_connected(peerId:int):
-	print("Peer connected: ", peerId)
-	localPeerId = multiplayer.get_unique_id()
-	
-	if isServer:
-		# 服务端记录新玩家
-		var playerName = "Player " + str(peerId)
-		players[peerId] = {"name": playerName, "playerId": Game.playerId.p2 if peerId == 2 else Game.playerId.p1}
-		emit_signal("player_joined", peerId, playerName)
-		# 通知所有客户端有新玩家加入
-		rpc("notifyPlayerJoined", peerId, playerName)
-	
-	currentState = NetworkState.CONNECTED
-	emit_signal("network_state_changed", currentState)
+# 主机：有客户端连入
+func _on_peer_connected(peer_id: int) -> void:
+	if multiplayer.is_server():
+		player_joined.emit(peer_id)
 
 
-# 有 peer 断开连接
-func _on_peer_disconnected(peerId:int):
-	print("Peer disconnected: ", peerId)
-	
-	if isServer:
-		# 服务端移除玩家并通知其他客户端
-		if players.has(peerId):
-			var playerName = players[peerId]["name"]
-			players.erase(peerId)
-			emit_signal("player_left", peerId)
-			rpc("notifyPlayerLeft", peerId)
-	
-	# 如果是主机断开，所有客户端也断开
-	if peerId == 1 && !isServer:
-		disconnectServer()
-	else:
-		currentState = NetworkState.DISCONNECTED
-		emit_signal("network_state_changed", currentState)
+# 有玩家断开
+func _on_peer_disconnected(peer_id: int) -> void:
+	player_left.emit(peer_id)
+
+
+# 客户端：连接主机成功
+func _on_connected_to_server() -> void:
+	joined_server.emit()
 
 
 # 连接失败
-func _on_connection_failed():
-	print("Connection failed")
-	currentState = NetworkState.IDLE
-	emit_signal("connection_failed", "Connection timeout")
-	emit_signal("network_state_changed", currentState)
+func _on_connection_failed() -> void:
+	close()
+	connection_failed.emit("连接超时或被拒绝")
+
+
+# 客户端：主机断开，返回主菜单
+func _on_server_disconnected() -> void:
+	if _closing:
+		return
+	close()
+	get_tree().change_scene_to_file("res://scene/welcome.tscn")

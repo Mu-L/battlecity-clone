@@ -8,6 +8,8 @@ extends VBoxContainer
 
 # 初始化函数
 func _ready():
+	if Game.scene_data.has('disableInput'):
+		disableInput = Game.scene_data['disableInput']
 	if disableInput:
 		label.visible=true  # 显示标签
 		set_physics_process(false)  # 禁用物理处理

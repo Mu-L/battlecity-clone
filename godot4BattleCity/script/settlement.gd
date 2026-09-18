@@ -65,6 +65,12 @@ var countIndex=0
 # 初始化函数
 func _ready():
 	RenderingServer.set_default_clear_color('#000')  # 设置背景色为黑色
+	# 联机时游戏结束标志由主机传给客户端
+	if Game.scene_data.has('gameOver'):
+		isGameOver = Game.scene_data['gameOver']
+	# 联机是双人合作，结算界面按双人模式显示（网络状态由 NetworkManager 判断）
+	if Game.mode == Game.gameMode.ONLINE:
+		Game.mode = Game.gameMode.DOUBLE
 	p1Score=Game.p1Data['score']  # 获取玩家1分数
 	p2Score=Game.p2Data['score']  # 获取玩家2分数
 	p1ScoreNode.text="%d"%p1Score  # 显示玩家1分数
@@ -235,12 +241,17 @@ func setNumLable(id,type,num):
 
 # 进入下一关或游戏结束
 func nextLevel():
+	if Game.isClient():
+		return # 联机时由主机决定下一步
 	if isGameOver:
 		gameOver()  # 游戏结束
 		return
 	
 	# 判断是否是最后一关
 	if Game.gameLevel>=Game.mapList.size()-1:
+		if Game.isOnline():
+			NetworkManager.change_scene("res://scene/info.tscn", {'disableInput': true})
+			return
 		var temp=load("res://scene/info.tscn")  # 加载信息场景
 		var scene=temp.instantiate()  # 实例化场景
 		scene.disableInput=true  # 禁用输入
@@ -249,11 +260,17 @@ func nextLevel():
 		queue_free()  # 释放当前场景
 	else:
 		Game.gameLevel+=1  # 增加关卡数
+		if Game.isOnline():
+			NetworkManager.change_scene("res://scene/splash.tscn")
+			return
 		var temp=load("res://scene/splash.tscn")  # 加载开场场景
 		get_tree().change_scene_to_packed(temp)  # 切换到开场场景
 				
 # 游戏结束处理
 func gameOver():
+	if Game.isOnline():
+		NetworkManager.change_scene("res://scene/gameover.tscn")
+		return
 	var temp=load("res://scene/gameover.tscn")  # 加载游戏结束场景
 	get_tree().change_scene_to_packed(temp)  # 切换到游戏结束场景	
 

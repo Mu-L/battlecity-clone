@@ -24,6 +24,9 @@ func addexplode():
 
 # 碰撞检测处理
 func _on_area_entered(area):
+	# 联机客户端不处理碰撞，基地被摧毁由服务端同步
+	if Game.isClient():
+		return
 	if area.get('objType')==Game.objType.BULLET:  # 检测是否为子弹
 		if !destroy:  # 如果基地还未被摧毁
 			set_deferred('monitorable',false)  # 禁用碰撞检测
@@ -31,5 +34,6 @@ func _on_area_entered(area):
 			destroy=true  # 设置摧毁标志
 			ani.play("destroy")  # 播放基地摧毁动画
 			Game.emit_signal("baseDestroyed")  # 发送基地被摧毁信号
+			Game.map.notifyBaseDestroyed()  # 联机时通知客户端
 			explosion.play()  # 播放爆炸音效
 			addexplode()  # 添加爆炸效果

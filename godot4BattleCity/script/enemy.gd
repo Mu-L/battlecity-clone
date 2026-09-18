@@ -52,6 +52,9 @@ func _ready():
 	
 # 物理过程处理
 func _physics_process(delta):
+	# 联机客户端不模拟敌人，位置与动画由服务端快照驱动
+	if Game.isClient():
+		return
 	if state==Game.tankstate.START:  # 如果坦克状态为开始
 		lastDir=dir  # 记录上一个方向
 		isStop=false  # 是否停止移动
@@ -322,6 +325,8 @@ func setExplosion():
 
 # 初始化计时器超时处理
 func _on_init_timer_timeout():
+	if Game.isClient():
+		return
 	if !isFreeze:
 		state=Game.tankstate.START  # 设置坦克状态为开始
 	else:
@@ -333,7 +338,8 @@ func _on_init_timer_timeout():
 
 # 碰撞处理（Godot 4 使用 _on_area_entered()）
 func _on_area_entered(area):
-	print(1)  # 调试信息
+	if Game.isClient():
+		return
 	if isDestroy||area==null:
 		return  # 如果坦克已被摧毁或区域为空，返回
 	

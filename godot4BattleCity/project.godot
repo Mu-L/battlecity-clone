@@ -24,7 +24,7 @@ config/icon="res://sprite/tank_main1.png"
 Game="*res://autoload/game.gd"
 NetworkManager="*res://autoload/network_manager.gd"
 SoundsUtil="*res://scene/sounds_util.tscn"
-InputBind="*uid://dvndoq1f71l4b"
+InputBind="*uid://drfecaxipu2ie"
 
 [debug]
 
